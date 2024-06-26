@@ -9,6 +9,8 @@ on:
       - '**'
   pull_request_target:
     types: [closed]
+  merge_group:
+    types: [checks_requested]
 
 jobs:
   webhook:
@@ -43,7 +45,7 @@ jobs:
           ${{ secrets.WEBHOOK_URL }}
 
       - name: Send webhook for merge events
-        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        if: github.event.pull_request.merged == true
         run: |
             REQUEST_ID="${{ github.event.pull_request.id }}"
             TIMESTAMP="${{ github.event.pull_request.updated_at }}"

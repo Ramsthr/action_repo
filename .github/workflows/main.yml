@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Debug event payload
+        run: echo "${{ toJSON(github.event) }}"
+
       - name: Send webhook for push and pull request events
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
         run: |
@@ -23,10 +27,12 @@ jobs:
             TO_BRANCH=$FROM_BRANCH
             ACTION="PUSH"
             REQUEST_ID="${{ github.sha }}"
+            TIMESTAMP="${{ github.event.head_commit.timestamp }}"
           else
             TO_BRANCH="${{ github.event.pull_request.base.ref }}"
             ACTION="PULL_REQUEST"
             REQUEST_ID="${{ github.event.pull_request.id }}"
+            TIMESTAMP="${{ github.event.pull_request.updated_at }}"
           fi
           curl -X POST -H "Content-Type: application/json" \
           -d '{"request_id":"'"$REQUEST_ID"'",
@@ -34,7 +40,7 @@ jobs:
                "action":"'"$ACTION"'",
                "from_branch":"'"$FROM_BRANCH"'",
                "to_branch":"'"$TO_BRANCH"'",
-               "timestamp":"${{ github.event.head_commit.timestamp }}"}' \
+               "timestamp":"'"$TIMESTAMP"'"}' \
           ${{ secrets.WEBHOOK_URL }}
 
       - name: Send webhook for merge events

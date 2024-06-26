@@ -18,13 +18,33 @@ jobs:
       - name: Send webhook for push and pull request events
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
         run: |
+          FROM_BRANCH=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TO_BRANCH=$FROM_BRANCH
+            ACTION="PUSH"
+            REQUEST_ID="${{ github.sha }}"
+          else
+            TO_BRANCH="${{ github.event.pull_request.base.ref }}"
+            ACTION="PULL_REQUEST"
+            REQUEST_ID="${{ github.event.pull_request.id }}"
+          fi
           curl -X POST -H "Content-Type: application/json" \
-          -d '{"repository":"${{ github.repository }}","action":"${{ github.event_name }}","sender":"${{ github.actor }}","ref":"${{ github.ref }}"}' \
+          -d '{"request_id":"'"$REQUEST_ID"'",
+               "author":"${{ github.actor }}",
+               "action":"'"$ACTION"'",
+               "from_branch":"'"$FROM_BRANCH"'",
+               "to_branch":"'"$TO_BRANCH"'",
+               "timestamp":"${{ github.event.head_commit.timestamp }}"}' \
           ${{ secrets.WEBHOOK_URL }}
 
       - name: Send webhook for merge events
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d '{"repository":"${{ github.repository }}","action":"merge","sender":"${{ github.actor }}","head_ref":"${{ github.event.pull_request.head.ref }}","base_ref":"${{ github.event.pull_request.base.ref }}"}' \
+          -d '{"request_id":"${{ github.event.pull_request.id }}",
+               "author":"${{ github.actor }}",
+               "action":"MERGE",
+               "from_branch":"${{ github.event.pull_request.head.ref }}",
+               "to_branch":"${{ github.event.pull_request.base.ref }}",
+               "timestamp":"${{ github.event.pull_request.updated_at }}"}' \
           ${{ secrets.WEBHOOK_URL }}

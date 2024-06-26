@@ -46,11 +46,13 @@ jobs:
       - name: Send webhook for merge events
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d '{"request_id":"${{ github.event.pull_request.id }}",
-               "author":"${{ github.actor }}",
-               "action":"MERGE",
-               "from_branch":"${{ github.event.pull_request.head.ref }}",
-               "to_branch":"${{ github.event.pull_request.base.ref }}",
-               "timestamp":"${{ github.event.pull_request.updated_at }}"}' \
-          ${{ secrets.WEBHOOK_URL }}
+            REQUEST_ID="${{ github.event.pull_request.id }}"
+            TIMESTAMP="${{ github.event.pull_request.updated_at }}"
+            curl -X POST -H "Content-Type: application/json" \
+            -d '{"request_id":"'"$REQUEST_ID"'",
+                 "author":"${{ github.actor }}",
+                 "action":"MERGE",
+                 "from_branch":"${{ github.event.pull_request.head.ref }}",
+                 "to_branch":"${{ github.event.pull_request.base.ref }}",
+                 "timestamp":"'"$TIMESTAMP"'"}' \
+            ${{ secrets.WEBHOOK_URL }}

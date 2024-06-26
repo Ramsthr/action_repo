@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Debug event payload
+        run: echo "${{ toJSON(github.event) }}"
+
       - name: Send webhook for push and pull request events
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
         run: |

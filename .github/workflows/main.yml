@@ -27,12 +27,14 @@ jobs:
             TO_BRANCH=$FROM_BRANCH
             ACTION="PUSH"
             REQUEST_ID="${{ github.sha }}"
-            TIMESTAMP="${{ github.event.head_commit.timestamp }}"
+            TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            # TIMESTAMP="${{ github.event.head_commit.timestamp }}"
           else
             TO_BRANCH="${{ github.event.pull_request.base.ref }}"
             ACTION="PULL_REQUEST"
             REQUEST_ID="${{ github.event.pull_request.id }}"
-            TIMESTAMP="${{ github.event.pull_request.updated_at }}"
+            TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            # TIMESTAMP="${{ github.event.pull_request.updated_at }}"
           fi
           curl -X POST -H "Content-Type: application/json" \
           -d '{"request_id":"'"$REQUEST_ID"'",
